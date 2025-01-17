@@ -61,8 +61,8 @@
     "last 2 versions"
   ],
   "engines": {
-    "node": "18.x",
-    "npm": "10.x"
+    "node": "17.x",
+    "npm": "8.x"
   },
   "license": "MIT"
 }
