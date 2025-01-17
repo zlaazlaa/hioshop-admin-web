@@ -19,7 +19,12 @@ jobs:
         with:
           submodules: true
           lfs: false
-      
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '17'
+
       - name: Replace credentials in src/config/api.js
         run: |
           sed -i 's#http://127.0.0.1:8360#${{ secrets.BACKEND_URL }}#g' ./src/common/config/config.js
