@@ -61,7 +61,7 @@
     "last 2 versions"
   ],
   "engines": {
-    "node": "16",
+    "node": "16.x",
     "npm": ">= 3.0.0"
   },
   "license": "MIT"
