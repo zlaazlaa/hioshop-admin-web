@@ -10,14 +10,7 @@ const api = {
     // },
 	// 4.19更新，物流查询不需要以上配置，只需要在server的config配置阿里云物流接口就可以
     qiniu: 'http://up-z0.qiniu.com',
-    azure_blob_container_root_url: 'azure_blob_container_root_url',
-    // 请根据自己创建的七牛的区域进行设置：
-    // https://developer.qiniu.com/kodo/manual/1671/region-endpoint
-	// 华东	  http(s)://up.qiniup.com
-	// 华北	  http(s)://up-z1.qiniup.com
-	// 华南	  http(s)://up-z2.qiniup.com
-	// 北美	  http(s)://up-na0.qiniup.com
-	// 东南亚 http(s)://up-as0.qiniup.com
+    azureBlobContainerRootUrl: 'azureBlobContainerRootUrlExample'
 };
 
 

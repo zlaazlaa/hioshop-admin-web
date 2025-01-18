@@ -493,7 +493,7 @@ export default {
 
         const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
         this.uploadToAzureBlob(SASString, containerName, file, fileName, () => {
-          this.infoForm.list_pic_url = this.azure_blob_container_root_url + fileName;
+          this.infoForm.list_pic_url = this.azureBlobContainerRootUrl + fileName;
           console.log("block url is: " + blockBlobClient.url);
         });
       }).catch((err) => {
@@ -553,7 +553,7 @@ export default {
 
         const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
         this.uploadToAzureBlob(SASString, containerName, file, fileName, () => {
-          let url = this.azure_blob_container_root_url + fileName;
+          let url = this.azureBlobContainerRootUrl + fileName;
           let data = {
             id: 0,
             url: url,
@@ -1004,7 +1004,7 @@ export default {
     }
     this.root = api.rootUrl;
     this.qiniuZone = api.qiniu;
-    this.azure_blob_container_root_url = api.azure_blob_container_root_url;
+    this.azureBlobContainerRootUrl = api.azureBlobContainerRootUrl;
   },
 };
 </script>
