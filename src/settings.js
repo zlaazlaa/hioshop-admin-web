@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: '海风小店',
+  title: '丽都水站后台管理系统',
 
   /**
    * @type {boolean} true | false
