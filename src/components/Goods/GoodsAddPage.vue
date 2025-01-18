@@ -485,56 +485,49 @@ export default {
     handleSuccess() {},
     uploadIndexImg(request) {
       const file = request.file;
-      console.log("上传的文件信息:", file);
+      this.getAzureBlobSASString();
 
       lrz(file).then((rst) => {
         const SASString = this.picData.SASString;
-        console.log("Azure Blob 存储连接字符串:", SASString);
         const containerName = 'li-du-shui-zhan';
-        console.log("容器名称:", containerName);
 
-        this.uploadToAzureBlob(SASString, containerName, file);
+        const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
+        this.uploadToAzureBlob(SASString, containerName, file, fileName, () => {
+          this.infoForm.list_pic_url = this.azure_blob_container_root_url + fileName;
+          console.log("block url is: " + blockBlobClient.url);
+        });
       }).catch((err) => {
         console.error("图片压缩失败:", err);
       });
     },
-    async uploadToAzureBlob(SASString, containerName, file) {
+    async uploadToAzureBlob(SASString, containerName, file, fileName, callback) {
       const { BlobServiceClient } = require('@azure/storage-blob');
-      const path = require('path');
+      const moment = require('moment'); 
 
       const blobServiceClient = new BlobServiceClient(SASString);
       const containerClient = blobServiceClient.getContainerClient(containerName);
 
       const exists = await containerClient.exists();
       if (!exists) {
-      console.log(`容器 "${containerName}" 不存在，正在创建...`);
-      await containerClient.create();
+        console.log(`容器 "${containerName}" 不存在，正在创建...`);
+        await containerClient.create();
       }
 
-      const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
       const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-      const fileStream = file.stream();
 
-      try {
-      console.log(`正在上传文件 "${fileName}"...`);
-      const uploadResponse = await blockBlobClient.uploadStream(fileStream, file.size);
-      console.log(`文件上传成功，URL: ${uploadResponse._response.request.url}`);
-      } catch (error) {
-      console.error('文件上传失败:', error.message);
-      }
-    },
-    handleUploadListSuccess(res) {
-      let url = this.url;
-      this.infoForm.list_pic_url = url + res.key;
-      console.log(this.infoForm.list_pic_url);
-      this.axios
-        .post("goods/uploadHttpsImage", {
-          url: this.infoForm.list_pic_url,
-        })
-        .then((response) => {
-          let lastUrl = response.data.data;
-          this.infoForm.https_pic_url = lastUrl;
-        });
+      const uploadFile = async () => {
+        try {
+          await blockBlobClient.uploadBrowserData(file);
+          if (callback && typeof callback === 'function') {
+            callback();
+          }
+        }
+        catch (error) {
+          console.log(error.message);
+        }
+      };
+
+      uploadFile();
     },
     onRemoveHandler(index) {
       let that = this;
@@ -552,38 +545,25 @@ export default {
     },
     uploadGalleryImg(request) {
       const file = request.file;
-      lrz(file)
-        .then((rst) => {
-          const config = {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
+      this.getAzureBlobSASString();
+
+      lrz(file).then((rst) => {
+        const SASString = this.picData.SASString;
+        const containerName = 'li-du-shui-zhan';
+
+        const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
+        this.uploadToAzureBlob(SASString, containerName, file, fileName, () => {
+          let url = this.azure_blob_container_root_url + fileName;
+          let data = {
+            id: 0,
+            url: url,
+            is_delete: 0,
           };
-          const fileName =
-            moment().format("YYYYMMDDHHmmssSSS") +
-            Math.floor(Math.random() * 100) +
-            file.name; //自定义图片名
-          const formData = new FormData();
-          formData.append("file", rst.file);
-          formData.append("token", this.picData.token);
-          formData.append("key", fileName);
-          this.$http.post(this.qiniuZone, formData, config).then((res) => {
-            this.handleUploadGallerySuccess(res.data);
-          });
-        })
-        .catch(function (err) {
-          console.log(err);
+          this.gallery_list.push(data);
         });
-    },
-    handleUploadGallerySuccess(res) {
-      let url = this.url;
-      let urlData = url + res.key;
-      let data = {
-        id: 0,
-        url: urlData,
-        is_delete: 0,
-      };
-      this.gallery_list.push(data);
+      }).catch((err) => {
+        console.error("图片压缩失败:", err);
+      });
     },
     test() {
       console.log(this.gallery_list);
@@ -1024,6 +1004,7 @@ export default {
     }
     this.root = api.rootUrl;
     this.qiniuZone = api.qiniu;
+    this.azure_blob_container_root_url = api.azure_blob_container_root_url;
   },
 };
 </script>

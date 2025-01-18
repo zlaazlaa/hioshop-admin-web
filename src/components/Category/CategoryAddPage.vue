@@ -189,6 +189,33 @@ export default {
     beforeIconRemove(file, fileList) {
       return this.$confirm(`确定移除图标？删除后将无法找回`);
     },
+    async uploadToAzureBlob(SASString, containerName, file) {
+      const { BlobServiceClient } = require('@azure/storage-blob');
+      const moment = require('moment'); 
+
+      const blobServiceClient = new BlobServiceClient(SASString);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+
+      const exists = await containerClient.exists();
+      if (!exists) {
+        console.log(`容器 "${containerName}" 不存在，正在创建...`);
+        await containerClient.create();
+      }
+
+      const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
+      const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+
+      const uploadFile = async () => {
+        try {
+            await blockBlobClient.uploadBrowserData(file);
+        }
+        catch (error) {
+          console.log(error.message);
+        }
+      };
+
+      uploadFile();
+    },
     bannerRemove(file, fileList) {
       this.infoForm.img_url = "";
       let id = this.infoForm.id;

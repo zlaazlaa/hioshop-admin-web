@@ -23,6 +23,7 @@ jobs:
       - name: Replace credentials in src/config/api.js
         run: |
           sed -i 's#http://127.0.0.1:8360#${{ secrets.BACKEND_URL }}#g' ./src/config/api.js
+          sed -i 's#azure_blob_container_root_url#${{ secrets.AZURE_BLOB_CONTAINER_ROOT_URL }}#g' ./src/config/api.js
 
       - name: Build And Deploy
         id: builddeploy

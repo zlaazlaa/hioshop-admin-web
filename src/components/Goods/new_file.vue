@@ -291,23 +291,16 @@
 			handleSuccess() {},
 			uploadIndexImg(request) {
 				const file = request.file;
+				this.getAzureBlobSASString();
+
 				lrz(file).then((rst) => {
-					const config = {
-						headers: {
-							'Content-Type': 'multipart/form-data'
-						},
-					};
-					const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name; //自定义图片名
-					const formData = new FormData();
-					formData.append('file', rst.file);
-					formData.append('token', this.picData.token);
-					formData.append('key', fileName);
-					this.$http.post(this.qiniuZone, formData, config).then((res) => {
-						this.handleUploadListSuccess(res.data)
-					})
-				}).catch(function(err) {
-					console.log(err)
-				})
+					const SASString = this.picData.SASString;
+					const containerName = 'li-du-shui-zhan';
+
+					this.uploadToAzureBlob(SASString, containerName, file);
+				}).catch((err) => {
+					console.error("图片压缩失败:", err);
+				});
 			},
 			handleUploadListSuccess(res) {
 				let url = this.url;
@@ -431,30 +424,32 @@
 			hasErrorAct(err) {
 				console.log(err);
 			},
-			async uploadToAzureBlob(sasString, containerName, file) {
+			async uploadToAzureBlob(SASString, containerName, file) {
 				const { BlobServiceClient } = require('@azure/storage-blob');
-				const path = require('path');
+				const moment = require('moment'); 
 
-				const blobServiceClient = BlobServiceClient(sasString);
+				const blobServiceClient = new BlobServiceClient(SASString);
 				const containerClient = blobServiceClient.getContainerClient(containerName);
 
 				const exists = await containerClient.exists();
 				if (!exists) {
-				console.log(`容器 "${containerName}" 不存在，正在创建...`);
-				await containerClient.create();
+					console.log(`容器 "${containerName}" 不存在，正在创建...`);
+					await containerClient.create();
 				}
 
 				const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
 				const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-				const fileStream = file.stream();
 
-				try {
-				console.log(`正在上传文件 "${fileName}"...`);
-				const uploadResponse = await blockBlobClient.uploadStream(fileStream, file.size);
-				console.log(`文件上传成功，URL: ${uploadResponse._response.request.url}`);
-				} catch (error) {
-				console.error('文件上传失败:', error.message);
-				}
+				const uploadFile = async () => {
+					try {
+						await blockBlobClient.uploadBrowserData(file);
+					}
+					catch (error) {
+					console.log(error.message);
+					}
+				};
+
+				uploadFile();
 			},
 			getQiniuToken() {
 				let that = this
