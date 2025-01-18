@@ -59,7 +59,7 @@
               :file-list="fileList"
               :on-success="handleUploadBannerSuccess"
               :data="picData"
-              :before-upload="getQiniuToken"
+              :before-upload="getAzureBlobConnectionString"
             >
               <el-button v-if="!infoForm.img_url" size="small" type="primary"
                 >点击上传</el-button
@@ -95,7 +95,7 @@
               :file-list="fileList2"
               :data="picData"
               :on-success="handleUploadIconSuccess"
-              :before-upload="getQiniuToken"
+              :before-upload="getAzureBlobConnectionString"
             >
               <el-button v-if="!infoForm.icon_url" size="small" type="primary"
                 >点击上传</el-button
@@ -174,6 +174,13 @@ export default {
         console.log(resInfo);
         that.picData.token = resInfo.token;
         that.url = resInfo.url;
+      });
+    },
+    getAzureBlobConnectionString() {
+      let that = this;
+      this.axios.post("index/getAzureBlobConnectionString").then((response) => {
+        let resInfo = response.data.data;
+        that.picData.connectionString = resInfo.connectionString;
       });
     },
     beforeBannerRemove(file, fileList) {
@@ -281,7 +288,7 @@ export default {
     this.getInfo();
     this.root = api.rootUrl;
     this.qiniuZone = api.qiniu;
-    this.getQiniuToken();
+    this.getAzureBlobConnectionString();
   },
 };
 </script>

@@ -657,6 +657,13 @@ export default {
         that.url = resInfo.url;
       });
     },
+    getAzureBlobConnectionString() {
+      let that = this;
+      this.axios.post("index/getAzureBlobConnectionString").then((response) => {
+        let resInfo = response.data.data;
+        that.picData.connectionString = resInfo.connectionString;
+      });
+    },
     specChange(value) {
       this.specForm.id = value;
     },
@@ -700,12 +707,12 @@ export default {
         .catch(() => {});
     },
     indexImgBefore(file) {
-      this.getQiniuToken();
+      this.getAzureBlobConnectionString();
     },
     galleryBefore(file) {
       this.picData.key =
         new Date().getTime() + Math.floor(Math.random() * 100) + file.name; //自定义图片名
-      this.getQiniuToken();
+      this.getAzureBlobConnectionString();
     },
     galleryRemove(file, fileList) {
       console.log(file);
@@ -744,7 +751,7 @@ export default {
     },
 
     beforeUpload(file) {
-      this.getQiniuToken();
+      this.getAzureBlobConnectionString();
       this.quillUpdateImg = true;
     },
     uploadError() {
@@ -994,7 +1001,7 @@ export default {
     this.getInfo();
     this.getAllCategory();
     this.getExpressData();
-    this.getQiniuToken();
+    this.getAzureBlobConnectionString();
     this.getAllSpecification();
     if (this.infoForm.id > 0) {
       this.getSpecData();
