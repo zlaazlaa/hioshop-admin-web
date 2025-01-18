@@ -341,9 +341,9 @@
 					'Content-Type': 'multipart/form-data'
 					},
 				};
-				const connectionString = this.picData.connectionString;
+				const sasString = this.picData.sasString;
 				const containerName = 'li-du-shui-zhan';
-				this.uploadToAzureBlob(connectionString, containerName, file);
+				this.uploadToAzureBlob(sasString, containerName, file);
 				});
 			},
 			handleUploadGallerySuccess(res) {
@@ -431,11 +431,11 @@
 			hasErrorAct(err) {
 				console.log(err);
 			},
-			async uploadToAzureBlob(connectionString, containerName, file) {
+			async uploadToAzureBlob(sasString, containerName, file) {
 				const { BlobServiceClient } = require('@azure/storage-blob');
 				const path = require('path');
 
-				const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+				const blobServiceClient = BlobServiceClient(sasString);
 				const containerClient = blobServiceClient.getContainerClient(containerName);
 
 				const exists = await containerClient.exists();
@@ -464,11 +464,11 @@
 					that.url = resInfo.url;
 				})
 			},
-			getAzureBlobConnectionString() {
+			getAzureBlobSASString() {
 				let that = this;
-				this.axios.post("index/getAzureBlobConnectionString").then((response) => {
+				this.axios.post("index/getAzureBlobSASString").then((response) => {
 					let resInfo = response.data.data;
-					that.picData.connectionString = resInfo.connectionString;
+					that.picData.sasString = resInfo.sasString;
 				});
 			},
 			specChange(value) {
@@ -514,11 +514,11 @@
 					.catch(() => {})
 			},
 			indexImgBefore(file) {
-				this.getAzureBlobConnectionString();
+				this.getAzureBlobSASString();
 			},
 			galleryBefore(file) {
 				this.picData.key = new Date().getTime() + Math.floor(Math.random() * 100) + file.name; //自定义图片名
-				this.getAzureBlobConnectionString();
+				this.getAzureBlobSASString();
 			},
 			galleryRemove(file, fileList) {
 				console.log(file);
@@ -555,7 +555,7 @@
 			},
 
 			beforeUpload(file) {
-				this.getAzureBlobConnectionString();
+				this.getAzureBlobSASString();
 				this.quillUpdateImg = true
 			},
 			uploadError() {
@@ -782,7 +782,7 @@
 			this.getInfo();
 			this.getAllCategory();
 			this.getExpressData();
-			this.getAzureBlobConnectionString();
+			this.getAzureBlobSASString();
 			this.getAllSpecification();
 			if (this.infoForm.id > 0) {
 				this.getSpecData();

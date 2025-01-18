@@ -24,7 +24,7 @@
 					</el-form-item>
 					<el-form-item label="广告图片" prop="image_url" v-if="!infoForm.image_url">
 						<el-upload name="file" ref="upload" class="upload-demo" :action="qiniuZone" :on-success="handleSuccess"
-						 :before-upload="getAzureBlobConnectionString" :auto-upload="true" list-type="picture-card" :data="picData" :http-request="uploadIndexImg">
+						 :before-upload="getAzureBlobSASString" :auto-upload="true" list-type="picture-card" :data="picData" :http-request="uploadIndexImg">
 							<el-button size="small" type="primary">点击上传</el-button>
 							<div slot="tip" class="el-upload__tip">只能上传jpg/png文件</div>
 						</el-upload>
@@ -199,11 +199,11 @@
                     that.url = resInfo.url;
                 })
             },
-            getAzureBlobConnectionString() {
+            getAzureBlobSASString() {
                 let that = this;
-                this.axios.post("index/getAzureBlobConnectionString").then((response) => {
+                this.axios.post("index/getAzureBlobSASString").then((response) => {
                     let resInfo = response.data.data;
-                    that.picData.connectionString = resInfo.connectionString;
+                    that.picData.sasString = resInfo.sasString;
                 });
             },
             goBackPage() {
@@ -294,7 +294,7 @@
             this.infoForm.id = this.$route.query.id || 0;
             this.getInfo();
             this.root = api.rootUrl;
-            this.getAzureBlobConnectionString();
+            this.getAzureBlobSASString();
             this.qiniuZone = api.qiniu;
         }
     }

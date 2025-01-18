@@ -385,7 +385,7 @@ export default {
       root: "",
       qiniuZone: "",
       picData: {
-        token: "",
+        SASString: "",
       },
       url: "",
       kdOptions: [],
@@ -485,28 +485,43 @@ export default {
     handleSuccess() {},
     uploadIndexImg(request) {
       const file = request.file;
-      lrz(file)
-        .then((rst) => {
-          const config = {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          };
-          const fileName =
-            moment().format("YYYYMMDDHHmmssSSS") +
-            Math.floor(Math.random() * 100) +
-            file.name; //自定义图片名
-          const formData = new FormData();
-          formData.append("file", rst.file);
-          formData.append("token", this.picData.token);
-          formData.append("key", fileName);
-          this.$http.post(this.qiniuZone, formData, config).then((res) => {
-            this.handleUploadListSuccess(res.data);
-          });
-        })
-        .catch(function (err) {
-          console.log(err);
-        });
+      console.log("上传的文件信息:", file);
+
+      lrz(file).then((rst) => {
+        const SASString = this.picData.SASString;
+        console.log("Azure Blob 存储连接字符串:", SASString);
+        const containerName = 'li-du-shui-zhan';
+        console.log("容器名称:", containerName);
+
+        this.uploadToAzureBlob(SASString, containerName, file);
+      }).catch((err) => {
+        console.error("图片压缩失败:", err);
+      });
+    },
+    async uploadToAzureBlob(SASString, containerName, file) {
+      const { BlobServiceClient } = require('@azure/storage-blob');
+      const path = require('path');
+
+      const blobServiceClient = new BlobServiceClient(SASString);
+      const containerClient = blobServiceClient.getContainerClient(containerName);
+
+      const exists = await containerClient.exists();
+      if (!exists) {
+      console.log(`容器 "${containerName}" 不存在，正在创建...`);
+      await containerClient.create();
+      }
+
+      const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
+      const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+      const fileStream = file.stream();
+
+      try {
+      console.log(`正在上传文件 "${fileName}"...`);
+      const uploadResponse = await blockBlobClient.uploadStream(fileStream, file.size);
+      console.log(`文件上传成功，URL: ${uploadResponse._response.request.url}`);
+      } catch (error) {
+      console.error('文件上传失败:', error.message);
+      }
     },
     handleUploadListSuccess(res) {
       let url = this.url;
@@ -657,11 +672,11 @@ export default {
         that.url = resInfo.url;
       });
     },
-    getAzureBlobConnectionString() {
+    getAzureBlobSASString() {
       let that = this;
-      this.axios.post("index/getAzureBlobConnectionString").then((response) => {
+      this.axios.post("index/getAzureBlobSASString").then((response) => {
         let resInfo = response.data.data;
-        that.picData.connectionString = resInfo.connectionString;
+        that.picData.SASString = resInfo.sasString;
       });
     },
     specChange(value) {
@@ -707,12 +722,12 @@ export default {
         .catch(() => {});
     },
     indexImgBefore(file) {
-      this.getAzureBlobConnectionString();
+      this.getAzureBlobSASString();
     },
     galleryBefore(file) {
       this.picData.key =
         new Date().getTime() + Math.floor(Math.random() * 100) + file.name; //自定义图片名
-      this.getAzureBlobConnectionString();
+      this.getAzureBlobSASString();
     },
     galleryRemove(file, fileList) {
       console.log(file);
@@ -751,7 +766,7 @@ export default {
     },
 
     beforeUpload(file) {
-      this.getAzureBlobConnectionString();
+      this.getAzureBlobSASString();
       this.quillUpdateImg = true;
     },
     uploadError() {
@@ -1001,7 +1016,7 @@ export default {
     this.getInfo();
     this.getAllCategory();
     this.getExpressData();
-    this.getAzureBlobConnectionString();
+    this.getAzureBlobSASString();
     this.getAllSpecification();
     if (this.infoForm.id > 0) {
       this.getSpecData();
