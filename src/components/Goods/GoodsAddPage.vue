@@ -511,12 +511,11 @@ export default {
 
       console.log(`当前时间：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`);
       const SASString = await this.getAzureBlobSASString();
-      console.log("3332232.  SASString is: " + SASString);
+      console.log("3332232.  SASString is: " + String(SASString));
       
-      const { BlobServiceClient } = require('@azure/storage-blob');
+      const { BlobServiceClient, AnonymousCredential } = require('@azure/storage-blob');
       const moment = require('moment'); 
-
-      const blobServiceClient = new BlobServiceClient(String(SASString));
+      const blobServiceClient = new BlobServiceClient(String(SASString), new AnonymousCredential());
       const containerClient = blobServiceClient.getContainerClient(containerName);
 
       const exists = await containerClient.exists();
