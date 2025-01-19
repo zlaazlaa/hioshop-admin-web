@@ -665,11 +665,18 @@ export default {
       try {
         const response = await this.axios.post("index/getAzureBlobSASString");
         const resInfo = response.data.data;
-        console.log("asasas sasstring: " + resInfo.sasString);
-        return resInfo.sasString;  // 直接返回获取到的 SASString
+
+        const sasStringBase64 = resInfo.sasStringBase64;
+        console.log("Base64 编码的 SAS Token: " + sasStringBase64);
+
+        // encode by: btoa(unescape(encodeURIComponent(utf8Text)))
+        const decodedSASString = decodeURIComponent(escape(atob(sasStringBase64)));
+        console.log("解码后的 SAS Token: " + decodedSASString);
+
+        return decodedSASString;
       } catch (error) {
-        console.error("获取SASString时出错", error);
-        throw error;  // 如果出错，抛出错误
+        console.error("获取并解码 SAS Token 时出错", error);
+        throw error;
       }
     },
     specChange(value) {
