@@ -485,22 +485,22 @@ export default {
     handleSuccess() {},
     uploadIndexImg(request) {
       const file = request.file;
-      this.getAzureBlobSASString();
+      console.log('开始上传图片...');
+      try {
+        const rst = lrz(file); // 图片压缩
 
-      lrz(file).then((rst) => {
-        const SASString = this.picData.SASString;
         const containerName = 'li-du-shui-zhan';
 
         const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
-        this.uploadToAzureBlob(SASString, containerName, file, fileName, () => {
+        this.uploadToAzureBlob(containerName, file, fileName, () => {
           this.infoForm.list_pic_url = this.azureBlobContainerRootUrl + fileName;
           console.log("block url is: " + blockBlobClient.url);
         });
-      }).catch((err) => {
-        console.error("图片压缩失败:", err);
-      });
+      } catch (err) {
+        console.error("图片上传失败:", err);
+      }
     },
-    async uploadToAzureBlob(SASString, containerName, file, fileName, callback) {
+    async uploadToAzureBlob(containerName, file, fileName, callback) {
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
@@ -510,7 +510,7 @@ export default {
       const seconds = now.getSeconds();
 
       console.log(`当前时间：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`);
-
+      const SASString = await this.getAzureBlobSASString();
       console.log("SASString is: " + SASString);
       
       const { BlobServiceClient } = require('@azure/storage-blob');
@@ -557,14 +557,12 @@ export default {
     },
     uploadGalleryImg(request) {
       const file = request.file;
-      this.getAzureBlobSASString();
 
       lrz(file).then((rst) => {
-        const SASString = this.picData.SASString;
         const containerName = 'li-du-shui-zhan';
 
         const fileName = moment().format('YYYYMMDDHHmmssSSS') + Math.floor(Math.random() * 100) + file.name;
-        this.uploadToAzureBlob(SASString, containerName, file, fileName, () => {
+        this.uploadToAzureBlob(containerName, file, fileName, () => {
           let url = this.azureBlobContainerRootUrl + fileName;
           let data = {
             id: 0,
@@ -664,12 +662,16 @@ export default {
         that.url = resInfo.url;
       });
     },
-    getAzureBlobSASString() {
-      let that = this;
-      this.axios.post("index/getAzureBlobSASString").then((response) => {
-        let resInfo = response.data.data;
-        that.picData.SASString = resInfo.sasString;
-      });
+    async getAzureBlobSASString() {
+      try {
+        const response = await this.axios.post("index/getAzureBlobSASString");
+        const resInfo = response.data.data;
+        console.log("asasas sasstring: " + resInfo.sasString);
+        return resInfo.sasString;  // 直接返回获取到的 SASString
+      } catch (error) {
+        console.error("获取SASString时出错", error);
+        throw error;  // 如果出错，抛出错误
+      }
     },
     specChange(value) {
       this.specForm.id = value;
