@@ -510,6 +510,8 @@ export default {
       const seconds = now.getSeconds();
 
       console.log(`当前时间：${year}-${month}-${date} ${hours}:${minutes}:${seconds}`);
+
+      console.log("SASString is: " + SASString);
       
       const { BlobServiceClient } = require('@azure/storage-blob');
       const moment = require('moment'); 
