@@ -516,7 +516,7 @@ export default {
       const { BlobServiceClient } = require('@azure/storage-blob');
       const moment = require('moment'); 
 
-      const blobServiceClient = new BlobServiceClient(SASString);
+      const blobServiceClient = new BlobServiceClient("https://zlaastore1.blob.core.windows.net/?sv=2022-11-02&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2025-01-19T22:09:41Z&st=2025-01-19T14:09:41Z&spr=https&sig=YN7Po%2F1LBM6qXXditu6J6g8t4v2hU%2FJmk1fHpnl50Dk%3D");
       const containerClient = blobServiceClient.getContainerClient(containerName);
 
       const exists = await containerClient.exists();
